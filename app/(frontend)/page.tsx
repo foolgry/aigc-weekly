@@ -40,7 +40,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               ::
               {' '}
             </span>
-            <a href="https://github.com/ccbikai/aigc-weekly" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/miantiao-me/aigc-weekly" target="_blank" rel="noopener noreferrer">
               GitHub 仓库
             </a>
           </p>

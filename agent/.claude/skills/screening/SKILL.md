@@ -23,4 +23,4 @@ description: 从草稿信息中筛选和提取高价值信息。
 
 1. GitHub Star History
 
-获取 GitHub 仓库的星标历史数据，`https://github.com/ccbikai/aigc-weekly` 对于的数据是 `https://api.star-history.com/svg?repos=ccbikai/aigc-weekly`
+获取 GitHub 仓库的星标历史数据，`https://github.com/miantiao-me/aigc-weekly` 对于的数据是 `https://api.star-history.com/svg?repos=miantiao-me/aigc-weekly`
