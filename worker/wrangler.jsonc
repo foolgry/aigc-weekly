@@ -6,6 +6,7 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "workers_dev": false,
   "minify": true,
   "upload_source_maps": true,
   "keep_vars": true,
@@ -25,8 +26,8 @@
   "workflows": [
     {
       "name": "aigc-weekly-workflow",
-      "binding": "CHAT_WORKFLOW",
-      "class_name": "ChatWorkflow"
+      "binding": "WEEKLY_WORKFLOW",
+      "class_name": "WeeklyWorkflow"
     }
   ],
   "containers": [

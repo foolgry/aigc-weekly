@@ -16,7 +16,6 @@ public
 worker
 
 *.ts
-*.mjs
 *.md
 *.jsonc
 *.local
