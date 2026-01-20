@@ -1,61 +1,87 @@
-import type { Options, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk'
 import { Container, getContainer } from '@cloudflare/containers'
 import { env } from 'cloudflare:workers'
 
 const PORT = 2442
 
-// Cloudflare env can include non-string bindings; filter to container-friendly entries
 const containerEnv = Object.fromEntries(
   Object.entries(env).filter(([, value]) => typeof value === 'string'),
 )
 
+function getAuthHeaders(): HeadersInit {
+  const username = env.OPENCODE_SERVER_USERNAME
+  const password = env.OPENCODE_SERVER_PASSWORD
+  if (password) {
+    return { Authorization: `Basic ${btoa(`${username}:${password}`)}` }
+  }
+  return {}
+}
+
 export class AgentContainer extends Container {
   sleepAfter = '10m'
   defaultPort = PORT
+
+  private _watchPromise?: Promise<void>
+
   envVars = {
     ...containerEnv,
+    OPENCODE_SERVER_USERNAME: containerEnv.OPENCODE_SERVER_USERNAME || 'agili',
+    OPENCODE_SERVER_PASSWORD: containerEnv.OPENCODE_SERVER_PASSWORD || crypto.randomUUID(),
     PORT: PORT.toString(),
   }
 
   async watchContainer() {
     try {
-      const res = await this.containerFetch(new Request('http://container/ws', { headers: { Upgrade: 'websocket' } }))
-      if (res.webSocket === null)
-        throw new Error('websocket server is faulty')
-
-      res.webSocket.addEventListener('message', (msg) => {
-        this.renewActivityTimeout()
-        console.info(msg.data)
+      const res = await this.containerFetch('http://container/global/event', {
+        headers: getAuthHeaders(),
       })
-      res.webSocket.accept()
+      const reader = res.body?.getReader()
+      if (reader) {
+        while (true) {
+          const { done } = await reader.read()
+          if (done)
+            break
+          await new Promise(resolve => setTimeout(resolve, 60_000))
+          this.renewActivityTimeout()
+        }
+      }
     }
     catch (error) {
-      console.error('Failed to connect to container WebSocket:', error)
+      console.error('SSE connection error:', error)
     }
   }
 
   override async onStart(): Promise<void> {
-    await this.watchContainer()
+    // 不 await，让 SSE 监听在后台运行，避免阻塞 blockConcurrencyWhile
+    this._watchPromise = this.watchContainer()
   }
-}
-
-export interface Payload {
-  prompt?: string | AsyncIterable<SDKUserMessage>
-  options?: Options
-}
-
-export async function chatWithContainerAgent(payload?: Payload) {
-  const container = getContainer(env.AGENT_CONTAINER)
-  return container.fetch('http://container/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload ?? {}),
-  })
 }
 
 export async function forwardRequestToContainer(request: Request) {
   const container = getContainer(env.AGENT_CONTAINER)
+
   return container.fetch(request)
+}
+
+export async function triggerWeeklyTask() {
+  const container = getContainer(env.AGENT_CONTAINER)
+  const headers = { 'Content-Type': 'application/json', ...getAuthHeaders() }
+
+  const createRes = await container.fetch(
+    'http://container/session',
+    { method: 'POST', headers, body: JSON.stringify({}) },
+  )
+  if (!createRes.ok)
+    throw new Error(`Failed to create session: ${createRes.status}`)
+
+  const session = await createRes.json() as { id: string }
+  console.info(`Created session: ${session.id}`)
+
+  const promptRes = await container.fetch(
+    `http://container/session/${session.id}/command`,
+    { method: 'POST', headers, body: JSON.stringify({ command: 'weekly', arguments: '' }) },
+  )
+  if (!promptRes.ok)
+    throw new Error(`Failed to send prompt: ${promptRes.status}`)
+
+  console.info(`Weekly task triggered: ${session.id}`)
 }

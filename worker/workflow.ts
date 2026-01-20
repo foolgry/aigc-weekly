@@ -1,14 +1,9 @@
 import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers'
-import type { Payload } from './container'
 import { WorkflowEntrypoint } from 'cloudflare:workers'
-import { chatWithContainerAgent } from './container'
+import { triggerWeeklyTask } from './container'
 
-export class ChatWorkflow extends WorkflowEntrypoint<Cloudflare.Env, Payload> {
-  async run(event: WorkflowEvent<Payload>, step: WorkflowStep) {
-    const result = await step.do('chat', async () => {
-      const response = await chatWithContainerAgent(event.payload)
-      return response.json()
-    })
-    return result
+export class WeeklyWorkflow extends WorkflowEntrypoint<Cloudflare.Env> {
+  async run(_event: WorkflowEvent<unknown>, step: WorkflowStep) {
+    await step.do('trigger-weekly', triggerWeeklyTask)
   }
 }
