@@ -7,15 +7,6 @@ const containerEnv = Object.fromEntries(
   Object.entries(env).filter(([, value]) => typeof value === 'string'),
 )
 
-function getAuthHeaders(): HeadersInit {
-  const username = env.OPENCODE_SERVER_USERNAME
-  const password = env.OPENCODE_SERVER_PASSWORD
-  if (password) {
-    return { Authorization: `Basic ${btoa(`${username}:${password}`)}` }
-  }
-  return {}
-}
-
 export class AgentContainer extends Container {
   sleepAfter = '10m'
   defaultPort = PORT
@@ -24,20 +15,17 @@ export class AgentContainer extends Container {
 
   envVars = {
     ...containerEnv,
-    OPENCODE_SERVER_USERNAME: containerEnv.OPENCODE_SERVER_USERNAME || 'agili',
-    OPENCODE_SERVER_PASSWORD: containerEnv.OPENCODE_SERVER_PASSWORD || crypto.randomUUID(),
     PORT: PORT.toString(),
   }
 
   async watchContainer() {
     try {
-      const res = await this.containerFetch('http://container/global/event', {
-        headers: getAuthHeaders(),
-      })
+      const res = await this.containerFetch('http://container/global/event')
       const reader = res.body?.getReader()
       if (reader) {
         while (true) {
           const { done } = await reader.read()
+          console.info('Renewed container activity timeout, done:', done)
           if (done)
             break
           await new Promise(resolve => setTimeout(resolve, 60_000))
@@ -64,7 +52,7 @@ export async function forwardRequestToContainer(request: Request) {
 
 export async function triggerWeeklyTask() {
   const container = getContainer(env.AGENT_CONTAINER)
-  const headers = { 'Content-Type': 'application/json', ...getAuthHeaders() }
+  const headers = { 'Content-Type': 'application/json' }
 
   const createRes = await container.fetch(
     'http://container/session',

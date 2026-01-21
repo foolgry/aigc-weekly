@@ -2,7 +2,9 @@ FROM nikolaik/python-nodejs:python3.12-nodejs22-bookworm
 
 ENV NODE_ENV=production
 
-RUN npm install -g opencode-ai@latest
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path \
+    && mv /root/.opencode/bin/opencode /usr/local/bin/opencode \
+    && chown pn:pn /usr/local/bin/opencode
 
 # 复制 Agent 配置到工作目录
 COPY --chown=pn:pn agent/.opencode /home/pn/app/.opencode
