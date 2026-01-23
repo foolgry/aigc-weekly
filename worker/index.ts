@@ -1,9 +1,7 @@
 import { env } from 'cloudflare:workers'
-
 import { forwardRequestToContainer, triggerWeeklyTask } from './container'
 
 export { AgentContainer } from './container'
-export { WeeklyWorkflow } from './workflow'
 
 function verifyBasicAuth(request: Request): Response | null {
   const username = env.SERVER_USERNAME

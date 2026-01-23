@@ -21,6 +21,3 @@ worker
 *.local
 *.example
 *.log
-
-**/*.exe
-**/*.jar
