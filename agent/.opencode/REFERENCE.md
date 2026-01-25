@@ -12,6 +12,7 @@
 - https://app.daily.dev/squads/vibecoding Vibecoding 的 daily.dev 频道，抓取 AIGC 相关的原文内容！
 - https://engineering.fyi/tag/generative-ai 聚合了大厂技术博客，抓取 AIGC 相关的原文内容！
 - https://every.to/newsletter 高质量的 AI 理念表达，抓取 AIGC 相关的原文内容！
+- https://hackernoon.com/c/ai HackerNoon AI 专栏，抓取 AIGC 相关的原文内容！
 
 ## Blogs & Websites
 
@@ -33,3 +34,6 @@
 - https://baoyu.io/ 行业大佬，必须关注！
 - https://www.bensbites.com/ Ben Tossell 的个人博客，洞察 AI 趋势。
 - https://www.lennysnewsletter.com/feed?sectionId=198869 Lenny's Newsletter: How I AI Podcast 的 RSS。
+- https://www.latent.space/feed Latent Space Newsletter, 深度 AI 技术与趋势分析。
+- https://www.oneusefulthing.org/feed One Useful Thing (Ethan Mollick), AI 与生产力深刻洞察。
+- https://www.interconnects.ai/feed Interconnects (Nathan Lambert), AI 模型与策略深度分析。
