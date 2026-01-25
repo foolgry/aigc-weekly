@@ -27,7 +27,6 @@
 - https://ampcode.com/chronicle Ampcode 的官方博客，关注 AI 与编程的结合。
 - https://cognition.ai/blog/1 Cognition AI 的官方博客，分享 AI 相关的技术与应用。
 - https://manus.im/zh-cn/blog Manus AI 的官方博客，关注 AI Agent 应用。
-- https://research.trychroma.com/ Chroma Research 博客，关注向量数据库与 AI 的结合。
 
 ## KOL & Influencers
 
