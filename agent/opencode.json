@@ -11,7 +11,7 @@
     "lsp": "deny",
     "question": "deny"
   },
-  "enabled_providers": ["openai-api", "google-api", "anthropic-api"],
+  "enabled_providers": ["openai", "google", "anthropic"],
   "default_agent": "build",
   "model": "{env:OPENCODE_MODEL}",
   "small_model": "{env:OPENCODE_SMALL_MODEL}",
@@ -49,62 +49,24 @@
     }
   },
   "provider": {
-    "openai-api": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "OpenAI(API)",
+    "openai": {
       "options": {
         "baseURL": "{env:OPENAI_BASE_URL}",
         "apiKey": "{env:OPENAI_API_KEY}"
-      },
-      "models": {
-        "gpt-5.2": {
-          "name": "GPT 5.2",
-          "limit": { "context": 128000, "output": 64000 }
-        }
       }
     },
-    "google-api": {
+    "google": {
       "npm": "@ai-sdk/google",
-      "name": "Google(API)",
       "options": {
         "baseURL": "{env:GOOGLE_BASE_URL}",
         "apiKey": "{env:GOOGLE_API_KEY}"
-      },
-      "models": {
-        "gemini-2.5-flash": {
-          "name": "Gemini 2.5 Flash",
-          "limit": { "context": 1000000, "output": 64000 }
-        },
-        "gemini-3-flash-preview": {
-          "name": "Gemini 3 Flash Preview",
-          "limit": { "context": 1000000, "output": 64000 }
-        },
-        "gemini-3-pro-preview": {
-          "name": "Gemini 3 Pro Preview",
-          "limit": { "context": 1000000, "output": 64000 }
-        }
       }
     },
-    "anthropic-api": {
+    "anthropic": {
       "npm": "@ai-sdk/anthropic",
-      "name": "Anthropic(API)",
       "options": {
         "baseURL": "{env:ANTHROPIC_BASE_URL}",
         "apiKey": "{env:ANTHROPIC_API_KEY}"
-      },
-      "models": {
-        "claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5",
-          "limit": { "context": 128000, "output": 64000 }
-        },
-        "gemini-claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5 (Antigravity)",
-          "limit": { "context": 128000, "output": 64000 }
-        },
-        "gemini-claude-opus-4-5-thinking": {
-          "name": "Claude Opus 4.5 (Antigravity)",
-          "limit": { "context": 128000, "output": 64000 }
-        }
       }
     }
   }
