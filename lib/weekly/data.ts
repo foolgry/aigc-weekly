@@ -1,6 +1,6 @@
 import type { PaginatedDocs } from 'payload'
 import type { Weekly } from '@/payload-types'
-import payloadConfig from '@payload-config'
+import payloadConfig from '@payload.config'
 import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import { cache } from 'react'

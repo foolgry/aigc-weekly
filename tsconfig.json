@@ -2,7 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "target": "ES2022",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": [
       "DOM",
       "DOM.Iterable",
@@ -15,7 +15,7 @@
       "@/*": [
         "./*"
       ],
-      "@payload-config": [
+      "@payload.config": [
         "payload.config.ts"
       ]
     },
