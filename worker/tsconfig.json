@@ -1,6 +1,9 @@
 {
   "extends": "../tsconfig.json",
   "include": [
-    "./cloudflare-env.d.ts"
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "./.wrangler"
   ]
 }

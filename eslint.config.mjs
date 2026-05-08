@@ -14,5 +14,6 @@ export default antfu({
     '*types.ts',
     '**/*.d.ts',
     '**/importMap.js',
+    'agent/.opencode/**/*.md',
   ],
 })

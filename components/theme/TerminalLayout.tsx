@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher'
 import { siteConfig } from '@/lib/config'
 
+const COPYRIGHT_YEAR = new Date().getFullYear()
+
 interface TerminalLayoutProps {
   header?: ReactNode
   children: ReactNode
@@ -41,7 +43,7 @@ export function TerminalLayout({ header, children, footer }: TerminalLayoutProps
           <div className="copyright">
             <span>
               ©
-              {new Date().getFullYear()}
+              {COPYRIGHT_YEAR}
               {' '}
               {siteConfig.title}
             </span>

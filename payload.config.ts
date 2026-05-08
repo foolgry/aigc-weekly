@@ -60,11 +60,9 @@ export default buildConfig({
 async function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
   const { getPlatformProxy } = await import(/* webpackIgnore: true */ `${'__wrangler'.replaceAll('_', '')}`)
   console.info('Getting Cloudflare context from Wrangler bindings', {
-    environment: process.env.CLOUDFLARE_ENV,
     remoteBindings: isProduction,
   })
   return getPlatformProxy({
-    environment: process.env.CLOUDFLARE_ENV,
     remoteBindings: isProduction,
   } satisfies GetPlatformProxyOptions)
 }
