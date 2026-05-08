@@ -18,7 +18,14 @@ a.button {
   font-weight: bold;
   appearance: none;
   cursor: pointer;
-  outline: none;
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+.button:focus-visible,
+a.button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }
 
 button.outline,

@@ -10,17 +10,16 @@ export function TagList({ tags }: TagListProps) {
   if (!tags || tags.length === 0)
     return null
 
-  // Normalize tags to string array
   const tagStrings = tags.map(tag => (typeof tag === 'string' ? tag : tag.value))
 
   return (
-    <span className="post-tags">
+    <ul className="post-tags" aria-label="标签">
       {tagStrings.map(tag => (
-        <span key={tag} className="post-tag">
+        <li key={tag} className="post-tag">
           #
           {tag}
-        </span>
+        </li>
       ))}
-    </span>
+    </ul>
   )
 }

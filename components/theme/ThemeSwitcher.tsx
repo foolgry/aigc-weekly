@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { useMounted } from './hooks'
 import { useTheme } from './ThemeContext'
@@ -9,6 +9,8 @@ export function ThemeSwitcher() {
   const { theme, themes, setTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLLIElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuId = useId()
 
   const mounted = useMounted()
 
@@ -18,18 +20,30 @@ export function ThemeSwitcher() {
         setIsOpen(false)
       }
     }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [isOpen])
 
   if (!mounted) {
     return (
       <ul className="menu menu--desktop menu--theme-selector">
         <li className="menu__item menu__dropdown-wrapper">
-          <span className="menu__trigger">
-            Theme ▾
+          <span className="menu__trigger" aria-hidden="true">
+            Theme
+            {' '}
+            <span aria-hidden="true">▾</span>
           </span>
         </li>
       </ul>
@@ -40,33 +54,35 @@ export function ThemeSwitcher() {
     <ul className="menu menu--desktop menu--theme-selector">
       <li
         className={`menu__item menu__dropdown-wrapper ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
         ref={wrapperRef}
       >
-        <span className="menu__trigger">
+        <button
+          aria-controls={menuId}
+          aria-expanded={isOpen}
+          className="menu__trigger"
+          ref={triggerRef}
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+        >
           {themes.find(preset => preset.id === theme)?.label ?? 'Theme'}
           {' '}
-          ▾
-        </span>
-        <ul className="menu__dropdown">
+          <span aria-hidden="true">▾</span>
+        </button>
+        <ul id={menuId} className="menu__dropdown">
           {themes.map(preset => (
             <li key={preset.id}>
-              <div
+              <button
+                aria-pressed={preset.id === theme}
                 className="menu__dropdown-item"
-                onClick={(e) => {
-                  e.stopPropagation()
+                type="button"
+                onClick={() => {
                   setTheme(preset.id)
                   setIsOpen(false)
-                }}
-                style={{
-                  display: 'flex',
-                  padding: '5px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
+                  triggerRef.current?.focus()
                 }}
               >
                 {preset.label}
-              </div>
+              </button>
             </li>
           ))}
         </ul>

@@ -17,7 +17,7 @@ export function Pagination({ title = '', prev, next }: PaginationProps) {
     return null
 
   return (
-    <div className="pagination">
+    <nav className="pagination" aria-label="分页导航">
       <div className="pagination__title">
         <span className="pagination__title-h">{title}</span>
         <hr />
@@ -26,7 +26,7 @@ export function Pagination({ title = '', prev, next }: PaginationProps) {
         {prev && (
           <span className="button prev">
             <Link href={prev.href}>
-              <span className="button__icon">←</span>
+              <span className="button__icon" aria-hidden="true">←</span>
               <span className="button__text">{prev.text}</span>
             </Link>
           </span>
@@ -35,11 +35,11 @@ export function Pagination({ title = '', prev, next }: PaginationProps) {
           <span className="button next">
             <Link href={next.href}>
               <span className="button__text">{next.text}</span>
-              <span className="button__icon">→</span>
+              <span className="button__icon" aria-hidden="true">→</span>
             </Link>
           </span>
         )}
       </div>
-    </div>
+    </nav>
   )
 }

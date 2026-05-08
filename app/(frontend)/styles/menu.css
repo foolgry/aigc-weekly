@@ -40,6 +40,7 @@
 .menu__trigger {
   margin-right: 0 !important;
   color: var(--accent);
+  font-weight: bold;
   user-select: none;
   cursor: pointer;
 }
@@ -78,6 +79,25 @@
 .menu__dropdown > li a {
   display: flex;
   padding: 5px;
+}
+
+.menu__dropdown-item {
+  display: flex;
+  width: 100%;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.menu__dropdown-item:hover,
+.menu__dropdown-item:focus-visible {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .menu--mobile .menu__trigger {

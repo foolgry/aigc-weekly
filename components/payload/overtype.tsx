@@ -68,6 +68,7 @@ export const OvertypeFieldComponent: TextareaFieldClientComponent = (props) => {
       theme: theme === 'dark' ? 'cave' : 'solar',
       toolbar: true,
       textareaProps: {
+        autoComplete: 'off',
         id: htmlID,
         name: path,
         readOnly: isDisabled,

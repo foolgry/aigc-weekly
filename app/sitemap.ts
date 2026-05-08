@@ -1,14 +1,12 @@
 import type { MetadataRoute } from 'next'
-import { siteConfig } from '@/lib/config'
-import { getWeeklyList } from '@/lib/weekly/data'
+import { requireBaseUrl } from '@/lib/url'
+import { getAllWeeklySitemapItems } from '@/lib/weekly/data'
 
 export const revalidate = 604800 // 1 week
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const weeklyResult = await getWeeklyList({ pageSize: 9999 })
-  const weeks = weeklyResult.items
-
-  const baseUrl = siteConfig.metadataBase && siteConfig.metadataBase.toString().replace(/\/$/, '')
+  const weeks = await getAllWeeklySitemapItems()
+  const baseUrl = requireBaseUrl()
 
   const weeklyUrls = weeks.map(week => ({
     url: `${baseUrl}/weekly/${week.slug}`,

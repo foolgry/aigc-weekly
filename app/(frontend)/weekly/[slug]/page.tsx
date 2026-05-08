@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
+import type { Media, Weekly } from '@/payload-types'
 import Link from 'next/link'
-
+import { notFound } from 'next/navigation'
 import { Pagination } from '@/components/theme/Pagination'
-
 import { PostMeta } from '@/components/theme/PostMeta'
 import { TagList } from '@/components/theme/TagList'
-import { TerminalLayout } from '@/components/theme/TerminalLayout'
+import { siteConfig } from '@/lib/config'
 import { renderMarkdown } from '@/lib/markdown'
-import { getWeeklyBySlug } from '@/lib/weekly/data'
+import { absoluteUrl, getBaseUrl } from '@/lib/url'
+import { getWeeklyBySlug, getWeeklySlugs } from '@/lib/weekly/data'
+
+export const revalidate = 86400
 
 interface WeeklyDetailPageProps {
   params: Promise<{
@@ -19,15 +22,50 @@ export async function generateMetadata({ params }: WeeklyDetailPageProps): Promi
   const { slug } = await params
   const weekly = await getWeeklyBySlug(slug)
 
-  if (!weekly) {
-    return {
-      title: `周刊未找到`,
-    }
-  }
+  if (!weekly)
+    notFound()
+
+  const url = absoluteUrl(`/weekly/${weekly.issueNumber}`)
+  const coverImageUrl = getCoverImageUrl(weekly.coverImage)
+  const images = coverImageUrl ? [coverImageUrl] : undefined
+  const tags = weekly.tags?.map(tag => tag.value) ?? []
 
   return {
-    title: `${weekly.title}`,
+    title: weekly.title,
     description: weekly.summary,
+    keywords: tags,
+    authors: siteConfig.authors,
+    alternates: url
+      ? {
+          canonical: url,
+        }
+      : undefined,
+    openGraph: {
+      ...siteConfig.openGraph,
+      title: weekly.title,
+      description: weekly.summary,
+      url,
+      type: 'article',
+      publishedTime: weekly.publishDate,
+      images,
+    },
+    twitter: {
+      ...siteConfig.twitter,
+      title: weekly.title,
+      description: weekly.summary,
+      images,
+    },
+  }
+}
+
+export async function generateStaticParams() {
+  try {
+    const slugs = await getWeeklySlugs()
+    return slugs.map(slug => ({ slug }))
+  }
+  catch (error) {
+    console.warn('Failed to generate weekly static params', error)
+    return []
   }
 }
 
@@ -35,20 +73,11 @@ export default async function WeeklyDetailPage({ params }: WeeklyDetailPageProps
   const { slug } = await params
   const weekly = await getWeeklyBySlug(slug)
 
-  if (!weekly) {
-    return (
-      <TerminalLayout>
-        <div className="post">
-          <div className="post-content">
-            <p>未找到对应的周刊，请返回列表查看其它期刊。</p>
-            <Link href="/weekly">返回列表</Link>
-          </div>
-        </div>
-      </TerminalLayout>
-    )
-  }
+  if (!weekly)
+    notFound()
 
   const html = renderMarkdown(weekly.content)
+  const jsonLd = getWeeklyJsonLd(weekly)
 
   const prevLink = weekly.prev
     ? { href: `/weekly/${weekly.prev.slug}`, text: weekly.prev.title }
@@ -58,25 +87,94 @@ export default async function WeeklyDetailPage({ params }: WeeklyDetailPageProps
     : undefined
 
   return (
-    <TerminalLayout>
-      <article className="post">
-        <h1 className="post-title">
-          <Link href={`/weekly/${weekly.issueNumber}`}>{weekly.title}</Link>
-        </h1>
+    <article className="post">
+      <script
+        type="application/ld+json"
+        // JSON-LD 仅输出结构化数据，不渲染可见内容
+        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
 
-        <PostMeta date={weekly.publishDate} issueNumber={weekly.issueNumber} />
+      <h1 className="post-title">
+        <Link href={`/weekly/${weekly.issueNumber}`}>{weekly.title}</Link>
+      </h1>
 
-        <TagList tags={weekly.tags} />
+      <PostMeta date={weekly.publishDate} issueNumber={weekly.issueNumber} />
 
-        {/* Markdown 内容经由 markdown-it 渲染，仅展示服务端输出 */}
-        {/* eslint-disable-next-line react-dom/no-dangerously-set-innerhtml */}
-        <div className="post-content" dangerouslySetInnerHTML={{ __html: html }} />
+      <TagList tags={weekly.tags} />
 
-        <Pagination
-          prev={prevLink}
-          next={nextLink}
-        />
-      </article>
-    </TerminalLayout>
+      {/* Markdown 内容经由 markdown-it 渲染，仅展示服务端输出 */}
+      {/* eslint-disable-next-line react-dom/no-dangerously-set-innerhtml */}
+      <div className="post-content" dangerouslySetInnerHTML={{ __html: html }} />
+
+      <Pagination
+        prev={prevLink}
+        next={nextLink}
+      />
+    </article>
   )
+}
+
+function getCoverImageUrl(coverImage: Media | number | null | undefined) {
+  if (!coverImage || typeof coverImage === 'number' || !coverImage.url)
+    return undefined
+
+  return absoluteUrl(coverImage.url)
+}
+
+function getWeeklyJsonLd(weekly: Weekly) {
+  const baseUrl = getBaseUrl()
+  const weeklyUrl = absoluteUrl(`/weekly/${weekly.issueNumber}`)
+  const coverImageUrl = getCoverImageUrl(weekly.coverImage)
+  const author = siteConfig.authors[0]
+  const graph: Array<Record<string, unknown>> = [
+    {
+      '@type': 'Article',
+      '@id': weeklyUrl ? `${weeklyUrl}#article` : undefined,
+      'headline': weekly.title,
+      'description': weekly.summary,
+      'url': weeklyUrl,
+      'datePublished': weekly.publishDate,
+      'dateModified': weekly.updatedAt,
+      'image': coverImageUrl,
+      'keywords': weekly.tags?.map(tag => tag.value),
+      'author': {
+        '@type': 'Person',
+        'name': author.name,
+        'url': author.url,
+      },
+      'publisher': {
+        '@type': 'Person',
+        'name': siteConfig.creator,
+        'url': baseUrl,
+      },
+      'mainEntityOfPage': weeklyUrl,
+    },
+  ]
+
+  if (baseUrl && weeklyUrl) {
+    graph.push({
+      '@type': 'BreadcrumbList',
+      '@id': `${weeklyUrl}#breadcrumb`,
+      'itemListElement': [
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'name': '首页',
+          'item': baseUrl,
+        },
+        {
+          '@type': 'ListItem',
+          'position': 2,
+          'name': weekly.title,
+          'item': weeklyUrl,
+        },
+      ],
+    })
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': graph,
+  }
 }

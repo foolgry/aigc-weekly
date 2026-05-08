@@ -8,6 +8,8 @@ export default antfu({
     'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
   },
   ignores: [
+    '.agents/**',
+    'skills-lock.json',
     'migrations/**',
     '*types.ts',
     '**/*.d.ts',

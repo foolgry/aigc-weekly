@@ -1,11 +1,10 @@
-import process from 'node:process'
 import Link from 'next/link'
 import { Pagination } from '@/components/theme/Pagination'
 import { PostMeta } from '@/components/theme/PostMeta'
 import { TagList } from '@/components/theme/TagList'
-import { TerminalLayout } from '@/components/theme/TerminalLayout'
 import { siteConfig } from '@/lib/config'
-import { getWeeklyList } from '../../lib/weekly/data'
+import { absoluteUrl } from '@/lib/url'
+import { getWeeklyList } from '@/lib/weekly/data'
 
 interface HomePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
@@ -15,6 +14,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams
   const page = parsePage(params?.page)
   const weeklyList = await getWeeklyList({ page })
+  const rssUrl = absoluteUrl('/rss.xml') ?? '/rss.xml'
 
   const { hasNextPage, hasPrevPage } = weeklyList.pagination
   const prevLink = hasPrevPage
@@ -25,14 +25,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     : undefined
 
   return (
-    <TerminalLayout>
+    <>
+      <h1 className="sr-only">{siteConfig.title}</h1>
+
       <div className="index-content">
         <div className="framed">
           <p>
             { siteConfig.description }
           </p>
           <p>
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/rss.xml`} rel="alternate" target="_blank">
+            <a href={rssUrl} rel="alternate noopener noreferrer" target="_blank">
               RSS 订阅
             </a>
             <span>
@@ -75,7 +77,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           next={nextLink}
         />
       </div>
-    </TerminalLayout>
+    </>
   )
 }
 

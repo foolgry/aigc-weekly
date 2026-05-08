@@ -69,14 +69,21 @@
 }
 
 .post-tags {
-  display: block;
-  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
   font-size: inherit;
   color: var(--accent);
 }
 
 .post-tag {
   margin-right: 10px;
+}
+
+.post .post-tags li:not(:empty)::before {
+  content: none;
 }
 
 .table-of-contents {
@@ -121,7 +128,9 @@
   color: var(--accent);
   text-decoration: none;
   margin-left: 10px;
-  visibility: hidden;
+  scroll-margin-top: calc(var(--line-height) * 2);
+  opacity: 0;
+  pointer-events: none;
 }
 
 h1:hover .hanchor,
@@ -129,8 +138,16 @@ h2:hover .hanchor,
 h3:hover .hanchor,
 h4:hover .hanchor,
 h5:hover .hanchor,
-h6:hover .hanchor {
-  visibility: visible;
+h6:hover .hanchor,
+h1:focus-within .hanchor,
+h2:focus-within .hanchor,
+h3:focus-within .hanchor,
+h4:focus-within .hanchor,
+h5:focus-within .hanchor,
+h6:focus-within .hanchor,
+.hanchor:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .footnotes {

@@ -1,9 +1,6 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ThemeSwitcher } from '@/components/theme'
-
+import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher'
 import { siteConfig } from '@/lib/config'
 
 interface TerminalLayoutProps {
@@ -15,11 +12,11 @@ interface TerminalLayoutProps {
 function HeaderNav() {
   return (
     <div className="header__inner">
-      <h1 className="header__logo">
+      <div className="header__logo">
         <Link href="/" className="logo">
           {siteConfig.title}
         </Link>
-      </h1>
+      </div>
       <ThemeSwitcher />
     </div>
   )
@@ -28,11 +25,13 @@ function HeaderNav() {
 export function TerminalLayout({ header, children, footer }: TerminalLayoutProps) {
   return (
     <div className="container">
+      <a href="#main-content" className="skip-link">跳到主要内容</a>
+
       <header className="header">
         <HeaderNav />
       </header>
 
-      <main className="content">
+      <main id="main-content" className="content" tabIndex={-1}>
         {header}
         {children}
       </main>

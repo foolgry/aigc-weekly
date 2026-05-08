@@ -1,11 +1,14 @@
 import type { PaginatedDocs } from 'payload'
 import type { Weekly } from '@/payload-types'
 import payloadConfig from '@payload-config'
+import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
 const DEFAULT_PAGE_SIZE = 3
 const MAX_PAGE_SIZE = 50
+const SITEMAP_PAGE_SIZE = 100
+const MAX_SITEMAP_PAGES = 1000
 
 const getPayloadClient = cache(async () => {
   const config = await payloadConfig
@@ -39,10 +42,22 @@ export interface WeeklyListResult {
   }
 }
 
-export async function getWeeklyList(params: WeeklyListParams = {}): Promise<WeeklyListResult> {
-  const page = normalizePositiveInteger(params.page, 1)
-  const pageSize = normalizePositiveInteger(params.pageSize, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+export interface WeeklySitemapItem {
+  slug: string
+  publishDate: string
+}
 
+interface WeeklyAdjacentLink {
+  title: string
+  slug: string
+}
+
+type WeeklyDetail = Weekly & {
+  prev: WeeklyAdjacentLink | null
+  next: WeeklyAdjacentLink | null
+}
+
+async function getWeeklyListFromPayload(page: number, pageSize: number): Promise<WeeklyListResult> {
   const payload = await getPayloadClient()
   const response = (await payload.find({
     collection: 'weekly',
@@ -77,11 +92,21 @@ export async function getWeeklyList(params: WeeklyListParams = {}): Promise<Week
   }
 }
 
-export async function getWeeklyBySlug(slug: string) {
-  if (!slug) {
-    return null
-  }
+const getWeeklyListCached = unstable_cache(getWeeklyListFromPayload, ['weekly-list'], {
+  revalidate: 3600,
+  tags: ['weekly'],
+})
 
+const getWeeklyListByPage = cache(async (page: number, pageSize: number): Promise<WeeklyListResult> => getWeeklyListCached(page, pageSize))
+
+export async function getWeeklyList(params: WeeklyListParams = {}): Promise<WeeklyListResult> {
+  const page = normalizePositiveInteger(params.page, 1)
+  const pageSize = normalizePositiveInteger(params.pageSize, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+
+  return getWeeklyListByPage(page, pageSize)
+}
+
+async function getWeeklyBySlugFromPayload(slug: string): Promise<WeeklyDetail | null> {
   const payload = await getPayloadClient()
   const response = (await payload.find({
     collection: 'weekly',
@@ -100,7 +125,6 @@ export async function getWeeklyBySlug(slug: string) {
   if (!currentDoc)
     return null
 
-  // Fetch adjacent posts
   const [prevDoc, nextDoc] = await Promise.all([
     payload.find({
       collection: 'weekly',
@@ -136,6 +160,68 @@ export async function getWeeklyBySlug(slug: string) {
     next: nextDoc.docs[0] ? { title: nextDoc.docs[0].title, slug: nextDoc.docs[0].issueNumber } : null,
   }
 }
+
+const getWeeklyBySlugCached = unstable_cache(getWeeklyBySlugFromPayload, ['weekly-by-slug'], {
+  revalidate: 86400,
+  tags: ['weekly'],
+})
+
+const getWeeklyByNormalizedSlug = cache(async (slug: string): Promise<WeeklyDetail | null> => getWeeklyBySlugCached(slug))
+
+export async function getWeeklyBySlug(slug: string): Promise<WeeklyDetail | null> {
+  if (!slug)
+    return null
+
+  return getWeeklyByNormalizedSlug(slug.toUpperCase())
+}
+
+async function getAllWeeklySitemapItemsFromPayload(): Promise<WeeklySitemapItem[]> {
+  const payload = await getPayloadClient()
+  const items: WeeklySitemapItem[] = []
+  let page = 1
+  let hasNextPage = true
+
+  while (hasNextPage && page <= MAX_SITEMAP_PAGES) {
+    const response = (await payload.find({
+      collection: 'weekly',
+      limit: SITEMAP_PAGE_SIZE,
+      page,
+      depth: 0,
+      select: {
+        issueNumber: true,
+        publishDate: true,
+      },
+      where: {
+        status: {
+          equals: 'published',
+        },
+      },
+      sort: '-publishDate',
+    })) as PaginatedDocs<Pick<Weekly, 'issueNumber' | 'publishDate'>>
+
+    items.push(...response.docs.map(doc => ({
+      slug: doc.issueNumber,
+      publishDate: doc.publishDate,
+    })))
+
+    hasNextPage = response.hasNextPage
+    page += 1
+  }
+
+  return items
+}
+
+const getAllWeeklySitemapItemsCached = unstable_cache(getAllWeeklySitemapItemsFromPayload, ['weekly-sitemap-items'], {
+  revalidate: 604800,
+  tags: ['weekly'],
+})
+
+export const getAllWeeklySitemapItems = cache(async (): Promise<WeeklySitemapItem[]> => getAllWeeklySitemapItemsCached())
+
+export const getWeeklySlugs = cache(async (): Promise<string[]> => {
+  const items = await getAllWeeklySitemapItems()
+  return items.map(item => item.slug)
+})
 
 function normalizePositiveInteger(value: number | undefined, fallback: number, max = Number.POSITIVE_INFINITY) {
   if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) {
