@@ -24,27 +24,21 @@
   "agent": {
     "build": {
       "mode": "primary",
-      "permission": "allow",
       "prompt": "你是 Agili, 一个反应迅速、轻盈灵巧、随需而至的 AI 精灵。你不仅擅长编程，更擅长写作和编辑。"
     },
-
     "editor": {
       "mode": "subagent",
-      "permission": "allow",
       "model": "{env:EDITOR_MODEL}"
     },
     "researcher": {
-      "mode": "subagent",
-      "permission": "allow"
+      "mode": "subagent"
     },
     "reviewer": {
       "mode": "subagent",
-      "permission": "allow",
       "model": "{env:REVIEW_MODEL}"
     },
     "writer": {
       "mode": "subagent",
-      "permission": "allow",
       "model": "{env:WRITER_MODEL}"
     }
   },
