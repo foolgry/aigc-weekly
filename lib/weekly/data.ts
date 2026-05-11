@@ -218,11 +218,6 @@ const getAllWeeklySitemapItemsCached = unstable_cache(getAllWeeklySitemapItemsFr
 
 export const getAllWeeklySitemapItems = cache(async (): Promise<WeeklySitemapItem[]> => getAllWeeklySitemapItemsCached())
 
-export const getWeeklySlugs = cache(async (): Promise<string[]> => {
-  const items = await getAllWeeklySitemapItems()
-  return items.map(item => item.slug)
-})
-
 function normalizePositiveInteger(value: number | undefined, fallback: number, max = Number.POSITIVE_INFINITY) {
   if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) {
     return fallback

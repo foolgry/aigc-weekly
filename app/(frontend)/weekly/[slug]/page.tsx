@@ -8,7 +8,7 @@ import { TagList } from '@/components/theme/TagList'
 import { siteConfig } from '@/lib/config'
 import { renderMarkdown } from '@/lib/markdown'
 import { absoluteUrl, getBaseUrl } from '@/lib/url'
-import { getWeeklyBySlug, getWeeklySlugs } from '@/lib/weekly/data'
+import { getWeeklyBySlug } from '@/lib/weekly/data'
 
 export const revalidate = 86400
 
@@ -55,17 +55,6 @@ export async function generateMetadata({ params }: WeeklyDetailPageProps): Promi
       description: weekly.summary,
       images,
     },
-  }
-}
-
-export async function generateStaticParams() {
-  try {
-    const slugs = await getWeeklySlugs()
-    return slugs.map(slug => ({ slug }))
-  }
-  catch (error) {
-    console.warn('Failed to generate weekly static params', error)
-    return []
   }
 }
 
