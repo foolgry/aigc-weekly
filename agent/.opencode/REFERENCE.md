@@ -17,8 +17,9 @@
 ## Blogs & Websites
 
 - https://www.anthropic.com/engineering Anthropic 的工程实践，行业风向标。
+- https://www.anthropic.com/research Anthropic Research，关注前沿研究成果。
 - https://claude.com/blog Claude 官方博客，关注最新动态。
-- https://developers.openai.com/blog OpenAI (ChatGPT) 开发者博客，关注技术动向。
+- https://developers.openai.com/ OpenAI 开发者资源，关注 API、模型与工程实践。
 - https://deepmind.google/blog/ DeepMind (Gemini) 官方博客，关注最新研究成果。
 - https://github.blog/ai-and-ml/ GitHub 的 AI 与机器学习相关博客。
 - https://blog.continue.dev/ Continue AI 的官方博客，分享 AI 相关的技术与应用。
@@ -27,12 +28,20 @@
 - https://ampcode.com/chronicle Ampcode 的官方博客，关注 AI 与编程的结合。
 - https://cognition.ai/blog/1 Cognition AI 的官方博客，分享 AI 相关的技术与应用。
 - https://manus.im/zh-cn/blog Manus AI 的官方博客，关注 AI Agent 应用。
+- https://www.augmentedswe.com/ Augmented SWE，关注 AI 编程与软件工程实践。
+- https://adventuresinclaude.ai/ Adventures in Claude，关注 Claude 使用与 Agent 实践。
+- https://sources.news/ Sources News，关注 AI 新闻与信源线索。
+- https://cursor.com/ Cursor 官方站点，关注 AI 编程产品动态。
 
 ## KOL & Influencers
 
 - https://baoyu.io/ 行业大佬，必须关注！
 - https://www.bensbites.com/ Ben Tossell 的个人博客，洞察 AI 趋势。
+- https://karpathy.bearblog.dev/blog/ Andrej Karpathy 的个人博客，关注 AI 与编程洞察。
+- https://shumer.dev/blog Matt Shumer 的个人博客，关注 AI 产品与 Agent 实践。
+- https://amankhan1.substack.com/ Aman Khan 的 Substack，关注 AI 应用与趋势。
 - https://www.lennysnewsletter.com/feed?sectionId=198869 Lenny's Newsletter: How I AI Podcast 的 RSS。
 - https://www.latent.space/feed Latent Space Newsletter, 深度 AI 技术与趋势分析。
 - https://www.oneusefulthing.org/feed One Useful Thing (Ethan Mollick), AI 与生产力深刻洞察。
 - https://www.interconnects.ai/feed Interconnects (Nathan Lambert), AI 模型与策略深度分析。
+- https://ruben.substack.com/ Ruben 的 Substack，关注 AI 与软件工程洞察。
