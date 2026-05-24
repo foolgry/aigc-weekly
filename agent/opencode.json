@@ -11,7 +11,6 @@
     "lsp": "deny",
     "question": "deny"
   },
-  "enabled_providers": ["openai", "google", "anthropic"],
   "default_agent": "build",
   "model": "{env:OPENCODE_MODEL}",
   "small_model": "{env:OPENCODE_SMALL_MODEL}",
