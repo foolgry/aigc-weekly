@@ -4,7 +4,7 @@ import { TerminalLayout } from '@/components/theme/TerminalLayout'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { ThemeScript } from '@/components/theme/ThemeScript'
 import { siteConfig } from '@/lib/config'
-import { getBaseUrl } from '@/lib/url'
+import { absoluteUrl, getBaseUrl } from '@/lib/url'
 import './global.css'
 
 export const metadata: Metadata = {
@@ -13,14 +13,21 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.title}`,
   },
   description: siteConfig.description,
+  applicationName: siteConfig.applicationName,
   keywords: siteConfig.keywords,
   authors: siteConfig.authors,
   creator: siteConfig.creator,
+  publisher: siteConfig.publisher,
+  category: siteConfig.category,
   openGraph: siteConfig.openGraph,
   twitter: siteConfig.twitter,
   icons: siteConfig.icons,
+  manifest: siteConfig.manifest,
   metadataBase: siteConfig.metadataBase,
   alternates: siteConfig.alternates,
+  robots: siteConfig.robots,
+  appleWebApp: siteConfig.appleWebApp,
+  formatDetection: siteConfig.formatDetection,
 }
 
 export const viewport: Viewport = {
@@ -59,6 +66,7 @@ function getWebsiteJsonLd() {
     'name': siteConfig.title,
     'description': siteConfig.description,
     'url': baseUrl,
+    'image': absoluteUrl(siteConfig.openGraph.images[0].url),
     'inLanguage': 'zh-Hans',
     'publisher': {
       '@type': 'Person',

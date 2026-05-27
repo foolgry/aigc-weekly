@@ -27,7 +27,9 @@ export async function generateMetadata({ params }: WeeklyDetailPageProps): Promi
 
   const url = absoluteUrl(`/weekly/${weekly.issueNumber}`)
   const coverImageUrl = getCoverImageUrl(weekly.coverImage)
-  const images = coverImageUrl ? [coverImageUrl] : undefined
+  const images = coverImageUrl
+    ? [{ url: coverImageUrl, alt: weekly.title }]
+    : siteConfig.openGraph.images
   const tags = weekly.tags?.map(tag => tag.value) ?? []
 
   return {
@@ -115,6 +117,7 @@ function getWeeklyJsonLd(weekly: Weekly) {
   const baseUrl = getBaseUrl()
   const weeklyUrl = absoluteUrl(`/weekly/${weekly.issueNumber}`)
   const coverImageUrl = getCoverImageUrl(weekly.coverImage)
+  const imageUrl = coverImageUrl ?? absoluteUrl(siteConfig.openGraph.images[0].url)
   const author = siteConfig.authors[0]
   const graph: Array<Record<string, unknown>> = [
     {
@@ -125,7 +128,7 @@ function getWeeklyJsonLd(weekly: Weekly) {
       'url': weeklyUrl,
       'datePublished': weekly.publishDate,
       'dateModified': weekly.updatedAt,
-      'image': coverImageUrl,
+      'image': imageUrl,
       'keywords': weekly.tags?.map(tag => tag.value),
       'author': {
         '@type': 'Person',
