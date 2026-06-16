@@ -13,39 +13,122 @@ export class AgentContainer extends Container {
   defaultPort = PORT
 
   private _watchPromise?: Promise<void>
+  private _watchReader?: ReadableStreamDefaultReader<Uint8Array>
+  private _watchSessionID?: string
 
   envVars = {
     ...containerEnv,
     PORT: PORT.toString(),
   }
 
-  async watchContainer() {
-    try {
-      const res = await this.containerFetch('http://container/global/event')
-      const reader = res.body?.getReader()
-      if (reader) {
-        await processSSEStream(reader, (event) => {
-          const eventType = event.payload?.type
+  async runWeeklyTask() {
+    const headers = { 'Content-Type': 'application/json' }
 
-          if (eventType === 'session.updated') {
-            this.renewActivityTimeout()
-            console.info('Renewed container activity timeout')
-          }
+    const createRes = await this.containerFetch(
+      'http://container/session',
+      { method: 'POST', headers, body: JSON.stringify({}) },
+    )
+    if (!createRes.ok)
+      throw new Error(`Failed to create session: ${createRes.status}`)
 
-          if (eventType !== 'message.part.updated') {
-            console.info('SSE event:', JSON.stringify(event.payload))
-          }
-        })
-      }
-    }
-    catch (error) {
-      console.error('SSE connection error:', error)
-    }
+    const session = await createRes.json() as { id: string }
+    console.info(`Created session: ${session.id}`)
+
+    await this.monitorSession(session.id)
+
+    const commandPromise = this.containerFetch(
+      `http://container/session/${session.id}/command`,
+      { method: 'POST', headers, body: JSON.stringify({ command: 'weekly', arguments: '' }) },
+    )
+      .then(async (commandRes) => {
+        if (!commandRes.ok)
+          throw new Error(`Failed to trigger weekly task: ${commandRes.status}`)
+
+        await commandRes.arrayBuffer()
+      })
+      .finally(() => this.stopMonitoringSession(session.id))
+
+    this.ctx.waitUntil(commandPromise)
+
+    console.info(`Weekly task triggered: ${session.id}`)
   }
 
-  override async onStart(): Promise<void> {
-    // 不 await，让 SSE 监听在后台运行，避免阻塞 blockConcurrencyWhile
-    this._watchPromise = this.watchContainer()
+  private async monitorSession(sessionID: string) {
+    await this.stopMonitoringSession()
+
+    const res = await this.containerFetch('http://container/global/event')
+    if (!res.ok)
+      throw new Error(`Failed to connect opencode event stream: ${res.status}`)
+
+    const reader = res.body?.getReader()
+    if (!reader)
+      throw new Error('Failed to read opencode event stream')
+
+    this._watchReader = reader
+    this._watchSessionID = sessionID
+
+    const watchPromise = processSSEStream(reader, (event) => {
+      const payload = event.payload
+      const eventType = payload?.type
+      const properties = payload?.properties
+
+      if (!eventType || eventType === 'message.part.updated' || eventType === 'server.heartbeat')
+        return
+
+      if (properties?.sessionID && properties.sessionID !== sessionID)
+        return
+
+      if (eventType === 'session.status') {
+        if (properties?.sessionID !== sessionID)
+          return
+
+        const statusType = properties.status?.type
+
+        if (statusType === 'busy' || statusType === 'retry') {
+          this.renewActivityTimeout()
+          console.info(`Session ${sessionID} is ${statusType}, renewed container activity timeout`)
+          return
+        }
+
+        if (statusType === 'idle') {
+          this.renewActivityTimeout()
+          console.info(`Session ${sessionID} is idle, stopping SSE monitor`)
+          return false
+        }
+      }
+
+      if (eventType === 'session.idle' || eventType === 'session.error') {
+        if (properties?.sessionID !== sessionID)
+          return
+
+        this.renewActivityTimeout()
+        console.info(`Session ${sessionID} emitted ${eventType}, stopping SSE monitor`)
+        return false
+      }
+
+      console.info('SSE event:', JSON.stringify(payload))
+    })
+      .catch((error) => {
+        console.error('SSE connection error:', error)
+      })
+      .finally(() => {
+        if (this._watchPromise === watchPromise) {
+          this._watchPromise = undefined
+          this._watchReader = undefined
+          this._watchSessionID = undefined
+        }
+      })
+
+    this._watchPromise = watchPromise
+    this.ctx.waitUntil(watchPromise)
+  }
+
+  private async stopMonitoringSession(sessionID?: string) {
+    if (sessionID && this._watchSessionID !== sessionID) {
+      return
+    }
+
+    await this._watchReader?.cancel().catch(() => {})
   }
 }
 
@@ -57,22 +140,6 @@ export async function forwardRequestToContainer(request: Request) {
 
 export async function triggerWeeklyTask() {
   const container = getContainer(env.AGENT_CONTAINER)
-  const headers = { 'Content-Type': 'application/json' }
 
-  const createRes = await container.fetch(
-    'http://container/session',
-    { method: 'POST', headers, body: JSON.stringify({}) },
-  )
-  if (!createRes.ok)
-    throw new Error(`Failed to create session: ${createRes.status}`)
-
-  const session = await createRes.json() as { id: string }
-  console.info(`Created session: ${session.id}`)
-
-  container.fetch(
-    `http://container/session/${session.id}/command`,
-    { method: 'POST', headers, body: JSON.stringify({ command: 'weekly', arguments: '' }) },
-  )
-
-  console.info(`Weekly task triggered: ${session.id}`)
+  await container.runWeeklyTask()
 }

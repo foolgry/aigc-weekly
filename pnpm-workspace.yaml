@@ -4,4 +4,3 @@ allowBuilds:
   simple-git-hooks: true
   workerd: true
 shellEmulator: true
-trustPolicy: no-downgrade
